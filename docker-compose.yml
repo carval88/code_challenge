@@ -1,0 +1,57 @@
+version: "3.2"
+
+services:
+  mysql_db:
+    build:
+      context: .
+      dockerfile: ./mysql/Dockerfile
+    container_name: mysql_db
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=admin2022
+    volumes:
+      - ./mysql_db:/var/lib/mysql
+    ports:
+      - "60001:3306"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
+    restart: always
+    environment:
+      - PMA_HOST=mysql_db
+    depends_on:
+        - mysql_db
+    ports:
+      - "60000:80"
+
+  api_rest:
+    build:
+      context: .
+      dockerfile: ./api/Dockerfile
+    container_name: api_rest
+    restart: always
+    ports:
+      - "40000:80"
+    environment:
+      - TZ=America/Santiago
+    depends_on:
+        - mysql_db
+    volumes:
+      - ./api:/var/www/html
+      - ./api/php.ini:/usr/local/etc/php/conf.d/uploads.ini
+
+  app:
+    build:
+      context: .
+      dockerfile: ./app/Dockerfile
+    container_name: app
+    restart: always
+    ports:
+      - "50000:80"
+    environment:
+      - TZ=America/Santiago
+    volumes:
+      - ./app:/var/www/html
+      - ./app/php.ini:/usr/local/etc/php/conf.d/uploads.ini
+
